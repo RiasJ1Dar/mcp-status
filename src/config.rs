@@ -117,15 +117,24 @@ pub fn parse_file(path: &Path) -> Result<Vec<McpServer>, String> {
 }
 
 fn parse_json(text: &str, source: &Path) -> Result<Vec<McpServer>, String> {
-    // Accept either a full root with mcpServers or a bare object of servers
-    // (rare); prefer the documented shape.
+    // Prefer `{ "mcpServers": { ... } }`. A bare map of servers is accepted only
+    // when every value is an object (legacy). Files without mcpServers and with
+    // unrelated string fields (e.g. Claude Desktop prefs) return empty, not error.
     let value: Value = serde_json::from_str(text).map_err(|e| e.to_string())?;
     let root: Root = if value.get("mcpServers").is_some() {
         serde_json::from_value(value).map_err(|e| e.to_string())?
-    } else {
-        // Fallback: treat whole object as mcpServers map.
+    } else if value.is_object()
+        && value
+            .as_object()
+            .map(|m| !m.is_empty() && m.values().all(|v| v.is_object()))
+            .unwrap_or(false)
+    {
         Root {
             mcp_servers: serde_json::from_value(value).map_err(|e| e.to_string())?,
+        }
+    } else {
+        Root {
+            mcp_servers: BTreeMap::new(),
         }
     };
 
@@ -153,6 +162,16 @@ fn parse_json(text: &str, source: &Path) -> Result<Vec<McpServer>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ignores_claude_prefs_without_mcp_servers() {
+        let json = r#"{
+            "coworkUserFilesPath": "C:\\Users\\Viktor\\Claude",
+            "preferences": { "sidebarMode": "chat" }
+        }"#;
+        let servers = parse_json(json, Path::new("claude_desktop_config.json")).unwrap();
+        assert!(servers.is_empty());
+    }
 
     #[test]
     fn parses_url_and_stdio() {

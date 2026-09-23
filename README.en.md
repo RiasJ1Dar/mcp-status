@@ -28,16 +28,15 @@ headless / `--once` works for CI.
 | Client | Windows | Linux / macOS |
 |---|---|---|
 | Cursor | `%USERPROFILE%\.cursor\mcp.json` | `~/.cursor/mcp.json` |
-| Cursor (legacy) | `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\settings.json` | `~/.config/Cursor/.../cursor.mcp/settings.json` |
-| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | macOS Application Support / Linux `~/.config/Claude/...` |
+| Cursor (legacy) | `%APPDATA%\Cursor\...\cursor.mcp\settings.json` | `~/.config/Cursor/...` |
+| Claude Code | `%USERPROFILE%\.claude.json`, `.claude\settings.json` | same under `$HOME` |
+| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Application Support / `.config/Claude` |
+| Jan | `%APPDATA%\Jan\data\mcp_config.json` | `~/.config/Jan/data/mcp_config.json` |
+| AnythingLLM | `%APPDATA%\anythingllm-desktop\...\anythingllm_mcp_servers.json` | under config dir |
 
+**Grok Bot** cloud MCP plugins are not in a local `mcpServers` file — not discoverable from disk today.
 Project-local `.cursor/mcp.json` is **not** scanned.
 
-## stdio heuristic limits
-
-- Shared names (`node`, `python`, `npx`) false-positive easily.
-- Short-lived children may be missed between polls.
-- Only command basename / stem is matched.
 
 ## Build
 

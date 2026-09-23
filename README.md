@@ -3,7 +3,7 @@
 # mcp-status
 
 Windows-трей застосунок (Rust, один бінарник), який показує **live/dead** стан
-локальних MCP-серверів з конфігів Cursor / Claude Desktop і шле toast лише при
+локальних MCP-серверів з конфігів Cursor, Claude Code/Desktop, Jan та ін. і шле toast лише при
 зміні стану.
 
 MVP 0.1 — робочий каркас: парсинг конфігів, TCP/stdio-перевірки, трей (Windows),
@@ -29,10 +29,15 @@ MVP 0.1 — робочий каркас: парсинг конфігів, TCP/st
 | Клієнт | Windows | Linux / macOS |
 |---|---|---|
 | Cursor | `%USERPROFILE%\.cursor\mcp.json` | `~/.cursor/mcp.json` |
-| Cursor (legacy) | `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\settings.json` | `~/.config/Cursor/.../cursor.mcp/settings.json` |
-| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | macOS: `~/Library/Application Support/Claude/...`; Linux: `~/.config/Claude/...` |
+| Cursor (legacy) | `%APPDATA%\Cursor\...\cursor.mcp\settings.json` | `~/.config/Cursor/...` |
+| Claude Code | `%USERPROFILE%\.claude.json`, `.claude\settings.json` | те саме під `$HOME` |
+| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Application Support / `.config/Claude` |
+| Jan | `%APPDATA%\Jan\data\mcp_config.json` | `~/.config/Jan/data/mcp_config.json` |
+| AnythingLLM | `%APPDATA%\anythingllm-desktop\...\anythingllm_mcp_servers.json` | під config dir |
 
-Проєктні `.cursor/mcp.json` **не** скануються (немає кореня воркспейсу).
+Плагіни **Grok Bot** (хмарний каталог конекторів) **не** лежать у локальному `mcpServers` — з диска їх зараз не видно.
+Проєктні `.cursor/mcp.json` **не** скануються.
+
 
 ## Обмеження stdio-евристики
 

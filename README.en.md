@@ -38,6 +38,18 @@ headless / `--once` works for CI.
 Project-local `.cursor/mcp.json` is **not** scanned.
 
 
+
+## Manual list (Grok, etc.)
+
+If an MCP is not in client configs (**Grok Bot** cloud connectors), add:
+
+- `%USERPROFILE%\.mcp-status.json`, or
+- `%APPDATA%\mcp-status\mcp-status.json`, or
+- `MCP_STATUS_CONFIG` path
+
+Same `mcpServers` shape; this file is read **first** (overrides auto-scan on name clash).
+See [`mcp-status.example.json`](mcp-status.example.json).
+
 ## Build
 
 ```bash

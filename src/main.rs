@@ -180,6 +180,7 @@ Env:
   MCP_STATUS_INTERVAL_SECS       Poll interval (default 10)
   MCP_STATUS_TOAST_SUPPRESS_SECS Startup toast mute (default 15)
   MCP_STATUS_EXCHANGE_URL        agent-exchange URL (default http://127.0.0.1:9750/; empty=off)
+  MCP_STATUS_CONFIG             Extra mcpServers JSON (overrides; also ~/.mcp-status.json)
   MCP_STATUS_AUTOSTART           If set, register Windows Run key on launch
   MCP_STATUS_TOAST_LOG           Non-Windows: print toast lines to stderr
 "

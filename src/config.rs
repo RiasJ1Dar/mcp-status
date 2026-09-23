@@ -12,8 +12,9 @@
 //! | Jan | `%APPDATA%\Jan\data\mcp_config.json` | `~/.config/Jan/data/mcp_config.json` |
 //! | AnythingLLM | `%APPDATA%\anythingllm-desktop\storage\plugins\anythingllm_mcp_servers.json` | under config dir |
 //!
-//! Grok Bot account MCP plugins live in the cloud catalog, not a local
-//! `mcpServers` JSON — they are not discoverable from disk today.
+//! Manual override (first in list, wins on name): `%USERPROFILE%\.mcp-status.json`,
+//! `%APPDATA%\mcp-status\mcp-status.json`, or `MCP_STATUS_CONFIG`.
+//! Use that for Grok Bot cloud MCP plugins (not on disk otherwise).
 //! Project-local `.cursor/mcp.json` is **not** scanned (no workspace root).
 
 use serde::Deserialize;
@@ -63,6 +64,22 @@ struct ServerEntry {
 /// Candidate config file paths for this OS (order = priority for duplicate names).
 pub fn candidate_paths() -> Vec<PathBuf> {
     let mut out = Vec::new();
+    // Manual override first (wins on name clash) — for Grok Bot cloud MCP, etc.
+    // MCP_STATUS_CONFIG=/path/to.json  or default:
+    //   %USERPROFILE%\.mcp-status.json
+    //   %APPDATA%\mcp-status\mcp-status.json  (dirs::config_dir)
+    if let Ok(extra) = std::env::var("MCP_STATUS_CONFIG") {
+        let p = PathBuf::from(extra);
+        if !p.as_os_str().is_empty() {
+            out.push(p);
+        }
+    }
+    if let Some(home) = dirs::home_dir() {
+        out.push(home.join(".mcp-status.json"));
+    }
+    if let Some(config) = dirs::config_dir() {
+        out.push(config.join("mcp-status").join("mcp-status.json"));
+    }
     if let Some(home) = dirs::home_dir() {
         out.push(home.join(".cursor").join("mcp.json"));
         // Claude Code stores mcpServers in the user JSON (not only Desktop).
@@ -262,6 +279,20 @@ mod tests {
             Transport::Url { url } => assert!(url.contains("exa.ai")),
             _ => panic!("expected url"),
         }
+    }
+
+    #[test]
+    fn candidate_includes_manual_override() {
+        let paths = candidate_paths();
+        assert!(
+            paths.iter().any(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n == ".mcp-status.json" || n == "mcp-status.json")
+                    .unwrap_or(false)
+            }),
+            "expected manual override path in {paths:?}"
+        );
     }
 
     #[test]

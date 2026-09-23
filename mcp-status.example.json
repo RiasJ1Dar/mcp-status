@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "grok-github": {
+      "url": "https://example.invalid/replace-me"
+    },
+    "grok-gmail": {
+      "url": "https://example.invalid/replace-me"
+    },
+    "grok-google-drive": {
+      "url": "https://example.invalid/replace-me"
+    },
+    "grok-google-calendar": {
+      "url": "https://example.invalid/replace-me"
+    },
+    "local-note-only": {
+      "command": "",
+      "args": []
+    }
+  }
+}

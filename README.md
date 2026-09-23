@@ -39,6 +39,21 @@ MVP 0.1 — робочий каркас: парсинг конфігів, TCP/st
 Проєктні `.cursor/mcp.json` **не** скануються.
 
 
+
+## Ручний список (Grok тощо)
+
+Якщо MCP немає в локальних конфігах клієнтів (типово **Grok Bot** — хмарні конектори),
+додай файл:
+
+- `%USERPROFILE%\.mcp-status.json`, або
+- `%APPDATA%\mcp-status\mcp-status.json`, або
+- шлях у `MCP_STATUS_CONFIG`
+
+Формат як у Cursor/Claude (`mcpServers`). Цей файл читається **першим** — ті самі
+імена перекривають авто-скан. Зразок: [`mcp-status.example.json`](mcp-status.example.json).
+
+Без `url` / `command` запис з’явиться в треї як `?` (unknown) — зручно просто «бачити список».
+
 ## Обмеження stdio-евристики
 
 - Спільні імена (`node`, `python`, `npx`) дають хибні спрацьовування.

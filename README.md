@@ -1,112 +1,168 @@
 **Українська** · [English](README.en.md)
 
-Покрокова інструкція: **[ІНСТРУКЦІЯ.md](ІНСТРУКЦІЯ.md)**.
-
 # mcp-status
 
-Windows-трей застосунок (Rust, один бінарник), який показує **live/dead** стан
-локальних MCP-серверів з конфігів Cursor, Claude Code/Desktop, Jan та ін. і шле toast лише при
-зміні стану.
+Windows-трей застосунок на Rust, який збирає локальні `mcpServers` із конфігів
+популярних клієнтів, показує їхній стан і надсилає toast лише при зміні стану.
+Один бінарник, без окремого runtime.
 
-MVP 0.1 — робочий каркас: парсинг конфігів, TCP/stdio-перевірки, трей (Windows),
-автозапуск, toast з глушінням на старті. На Linux/macOS GUI-залежності
-відключені (`cfg(windows)`), працює headless/`--once` для CI.
+Покрокове встановлення: **[ІНСТРУКЦІЯ.md](ІНСТРУКЦІЯ.md)**.
+English setup: [INSTRUCTIONS.md](INSTRUCTIONS.md).
 
-## Що робить
+## Що перевіряється
 
-1. Читає `mcpServers` з типових JSON-конфігів.
-2. Періодично перевіряє кожен сервер:
-   - **HTTP/SSE (`url`)** — TCP connect на host:port (не MCP-протокол).
-   - **stdio (`command`)** — евристика за іменем процесу; якщо процесу немає →
-     `unknown` (сконфігуровано, але не підтверджено), не `dead`.
-3. Трей-меню з індикатором ● / ○ / ? для кожного MCP.
-4. Windows toast **лише на зміну** стану; перші N секунд після старту — тиша
-   (за замовчуванням 15 с), щоб не спамити при запуску.
-5. Опційно GET на agent-exchange UI (`http://127.0.0.1:9750/` або
-   `MCP_STATUS_EXCHANGE_URL`).
-6. Автозапуск Windows через `HKCU\...\Run` (як у desktop-remote-kit).
+| Конфіг | Перевірка | Результат |
+|---|---|---|
+| `url` з `http(s)` або `ws(s)` | TCP connect до host:port, timeout 2 с | `live` або `dead` |
+| `command` для stdio | Пошук процесу за basename / stem команди | `live` або `unknown` |
+| запис без `url` і `command` | Перевірити транспорт неможливо | `unknown` |
+| agent-exchange URL | HTTP GET, 2xx/3xx | `live` або `dead` |
 
-## Шляхи конфігів
+TCP-перевірка не виконує MCP handshake і не перевіряє конкретний HTTP route.
+Відкритий порт означає лише те, що endpoint доступний на транспортному рівні.
+
+Позначки в треї:
+
+- `●` — live;
+- `○` — dead;
+- `?` — сконфігуровано, але стан не підтверджено.
+
+## Встановлення
+
+Потрібен Rust toolchain. Для Windows-збірки MSVC потрібні Visual Studio Build
+Tools із компонентом C++.
+
+```bash
+cargo install --git https://github.com/RiasJ1Dar/mcp-status
+```
+
+Або з клону:
+
+```bash
+git clone https://github.com/RiasJ1Dar/mcp-status.git
+cd mcp-status
+cargo build --release
+```
+
+Бінарник: `target/release/mcp-status.exe` на Windows або
+`target/release/mcp-status` на інших ОС.
+
+## Швидкий старт
+
+Перевірити, які конфіги знайдено, без запуску трея:
+
+```bash
+mcp-status --once
+```
+
+Команда друкує сервери, їхній стан і всі candidate paths із позначкою, чи
+існує файл.
+
+Запустити трей на Windows:
+
+```bash
+mcp-status
+```
+
+Перші 15 секунд toast приглушені, щоб запуск не створював серію сповіщень.
+Далі toast з'являється лише при зміні health state.
+
+## Команди
+
+| Прапорець | Дія |
+|---|---|
+| `--once` | Один scan + ping, друк результату й вихід |
+| `--autostart-on` | Додати поточний exe у Windows Run |
+| `--autostart-off` | Прибрати запис із Windows Run |
+| `--autostart-status` | Показати стан автозапуску |
+| `-h`, `--help` | Надрукувати довідку |
+
+На Linux/macOS без `--once` працює headless loop; Windows GUI-залежності
+підключаються лише через `cfg(windows)`.
+
+## Джерела конфігів
+
+Підтримується об'єкт `mcpServers` у JSON. Також приймається legacy bare map,
+якщо всі його значення — об'єкти.
 
 | Клієнт | Windows | Linux / macOS |
 |---|---|---|
 | Cursor | `%USERPROFILE%\.cursor\mcp.json` | `~/.cursor/mcp.json` |
-| Cursor (legacy) | `%APPDATA%\Cursor\...\cursor.mcp\settings.json` | `~/.config/Cursor/...` |
-| Claude Code | `%USERPROFILE%\.claude.json`, `.claude\settings.json` | те саме під `$HOME` |
+| Cursor legacy | `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\settings.json` | відповідний config dir |
+| Claude Code | `%USERPROFILE%\.claude.json`, `%USERPROFILE%\.claude\settings.json` | те саме під `$HOME` |
 | Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Application Support / `.config/Claude` |
-| Jan | `%APPDATA%\Jan\data\mcp_config.json` | `~/.config/Jan/data/mcp_config.json` |
-| AnythingLLM | `%APPDATA%\anythingllm-desktop\...\anythingllm_mcp_servers.json` | під config dir |
+| Jan | `%APPDATA%\Jan\data\mcp_config.json` | відповідний config dir |
+| AnythingLLM | `%APPDATA%\anythingllm-desktop\storage\plugins\anythingllm_mcp_servers.json` | відповідний config dir |
 
-Плагіни **Grok Bot** (хмарний каталог) **не** лежать у локальному `mcpServers` клієнта — додай їх у ручний файл (нижче / [ІНСТРУКЦІЯ.md](ІНСТРУКЦІЯ.md)).
-Проєктні `.cursor/mcp.json` **не** скануються.
+Проєктні `.cursor/mcp.json` не скануються: застосунок не має workspace root.
 
+## Ручний список і пріоритет
 
+Для Grok Bot або іншого MCP, якого немає в локальному конфігу клієнта, створи:
 
-## Ручний список (Grok тощо)
+- шлях із `MCP_STATUS_CONFIG`;
+- `%USERPROFILE%\.mcp-status.json`;
+- `%APPDATA%\mcp-status\mcp-status.json`.
 
-Якщо MCP немає в локальних конфігах клієнтів (типово **Grok Bot** — хмарні конектори),
-додай файл:
+Приклад: [mcp-status.example.json](mcp-status.example.json).
 
-- `%USERPROFILE%\.mcp-status.json`, або
-- `%APPDATA%\mcp-status\mcp-status.json`, або
-- шлях у `MCP_STATUS_CONFIG`
-
-Формат як у Cursor/Claude (`mcpServers`). Цей файл читається **першим** — ті самі
-імена перекривають авто-скан. Зразок: [`mcp-status.example.json`](mcp-status.example.json).
-
-Без `url` / `command` запис з’явиться в треї як `?` (unknown) — зручно просто «бачити список».
-
-## Обмеження stdio-евристики
-
-- Спільні імена (`node`, `python`, `npx`) дають хибні спрацьовування.
-- Короткоживучі дочірні процеси можуть «миготіти» між опитуваннями.
-- Порівнюється лише basename / file stem команди, не повний командний рядок.
-
-## Збірка
-
-```bash
-cargo build --release
+```json
+{
+  "mcpServers": {
+    "local-http": {
+      "url": "http://127.0.0.1:3000/mcp"
+    },
+    "local-stdio": {
+      "command": "C:/Tools/exchange-mcp.exe",
+      "args": []
+    },
+    "catalog-only": {}
+  }
+}
 ```
 
-Бінарник: `target/release/mcp-status` (на Windows — `.exe`).
+Файли читаються в порядку пріоритету; при однаковому імені перший запис
+перемагає. Спочатку йдуть ручні файли, потім конфіги клієнтів. Один
+пошкоджений entry пропускається з повідомленням у stderr, а не приховує решту
+файла. UTF-8 BOM підтримується.
 
-```bash
-cargo run -- --once          # один прохід, зручно для CI / Linux
-cargo test
-cargo check                  # має проходити на Linux без Windows-deps
-```
+## Змінні середовища
 
-### Прапорці
-
-| Прапорець | Дія |
-|---|---|
-| `--once` | Скан + ping, друк, вихід |
-| `--autostart-on` / `--off` / `--status` | Run-ключ Windows |
-| `-h` / `--help` | Довідка |
-
-### Змінні середовища
-
-| Змінна | За замовчуванням | Сенс |
+| Змінна | За замовчуванням | Призначення |
 |---|---|---|
 | `MCP_STATUS_INTERVAL_SECS` | `10` | Інтервал опитування |
 | `MCP_STATUS_TOAST_SUPPRESS_SECS` | `15` | Тиша toast після старту |
-| `MCP_STATUS_EXCHANGE_URL` | `http://127.0.0.1:9750/` | Порожній рядок = вимкнути |
-| `MCP_STATUS_AUTOSTART` | — | Якщо задано — увімкнути Run при старті |
-| `MCP_STATUS_TOAST_LOG` | — | На non-Windows друкувати «toast» у stderr |
+| `MCP_STATUS_EXCHANGE_URL` | `http://127.0.0.1:9750/` | URL agent-exchange; порожнє значення вимикає probe |
+| `MCP_STATUS_CONFIG` | — | Додатковий JSON найвищого пріоритету |
+| `MCP_STATUS_AUTOSTART` | — | Якщо змінна існує, зареєструвати Windows Run під час запуску |
+| `MCP_STATUS_TOAST_LOG` | — | На non-Windows друкувати toast-події у stderr |
 
-## Що реалізовано / заглушки
+Якщо agent-exchange не використовується, вимкни його probe:
 
-| Частина | Стан |
-|---|---|
-| Парсинг `mcpServers` | ✅ |
-| TCP ping для `url` | ✅ |
-| stdio process heuristic | ✅ (з обмеженнями вище) |
-| Трей + меню | ✅ Windows; headless на інших ОС |
-| Toast на зміну + suppress | ✅ Windows (`winrt-notification`); stub лог elsewhere |
-| agent-exchange GET | ✅ (простий HTTP GET) |
-| Автозапуск Windows | ✅; elsewhere `Unsupported` |
-| Project-level `.cursor/mcp.json` | ❌ не сканується |
-| Повний MCP handshake | ❌ навмисно лише TCP / process |
+```powershell
+$env:MCP_STATUS_EXCHANGE_URL = ""
+mcp-status --once
+```
+
+## Обмеження
+
+- `node`, `python`, `npx` та інші спільні імена процесів можуть дати
+  хибний `live`.
+- Короткоживучий stdio-процес може зникнути між опитуваннями.
+- Для stdio не аналізується повний command line або `args`.
+- Для URL не виконується MCP handshake.
+- Застосунок спостерігає; він не запускає, не зупиняє й не перезапускає MCP.
+
+## Розробка
+
+```bash
+cargo fmt --check
+cargo test
+cargo check
+cargo clippy --all-targets -- -D warnings
+```
+
+CI перевіряє Linux-збірку без Windows GUI-залежностей.
 
 ## Ліцензія
 

@@ -1,5 +1,7 @@
 [Українська](README.md) · **English**
 
+Step-by-step: **[INSTRUCTIONS.md](INSTRUCTIONS.md)** · [ІНСТРУКЦІЯ.md](ІНСТРУКЦІЯ.md).
+
 # mcp-status
 
 Windows tray app (Rust, single binary) that shows **live/dead** status for local

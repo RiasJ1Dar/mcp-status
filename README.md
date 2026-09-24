@@ -1,5 +1,7 @@
 **Українська** · [English](README.en.md)
 
+Покрокова інструкція: **[ІНСТРУКЦІЯ.md](ІНСТРУКЦІЯ.md)**.
+
 # mcp-status
 
 Windows-трей застосунок (Rust, один бінарник), який показує **live/dead** стан
@@ -35,7 +37,7 @@ MVP 0.1 — робочий каркас: парсинг конфігів, TCP/st
 | Jan | `%APPDATA%\Jan\data\mcp_config.json` | `~/.config/Jan/data/mcp_config.json` |
 | AnythingLLM | `%APPDATA%\anythingllm-desktop\...\anythingllm_mcp_servers.json` | під config dir |
 
-Плагіни **Grok Bot** (хмарний каталог конекторів) **не** лежать у локальному `mcpServers` — з диска їх зараз не видно.
+Плагіни **Grok Bot** (хмарний каталог) **не** лежать у локальному `mcpServers` клієнта — додай їх у ручний файл (нижче / [ІНСТРУКЦІЯ.md](ІНСТРУКЦІЯ.md)).
 Проєктні `.cursor/mcp.json` **не** скануються.
 
 

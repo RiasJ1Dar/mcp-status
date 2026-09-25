@@ -77,6 +77,9 @@ mcp-status
 | `--autostart-status` | Показати стан автозапуску |
 | `-h`, `--help` | Надрукувати довідку |
 
+Команди `--autostart-*` при помилці пишуть її в stderr і виходять із кодом `1`.
+У меню трея — список серверів зі станом і пункт «Вийти / Quit».
+
 На Linux/macOS без `--once` працює headless loop; Windows GUI-залежності
 підключаються лише через `cfg(windows)`.
 
@@ -89,7 +92,7 @@ mcp-status
 |---|---|---|
 | Cursor | `%USERPROFILE%\.cursor\mcp.json` | `~/.cursor/mcp.json` |
 | Cursor legacy | `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\settings.json` | відповідний config dir |
-| Claude Code | `%USERPROFILE%\.claude.json`, `%USERPROFILE%\.claude\settings.json` | те саме під `$HOME` |
+| Claude Code | `%USERPROFILE%\.claude.json`, `%USERPROFILE%\.claude\settings.json`, `%APPDATA%\Claude Code\settings.json` | те саме під `$HOME`; `Claude Code/settings.json` у config dir |
 | Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Application Support / `.config/Claude` |
 | Jan | `%APPDATA%\Jan\data\mcp_config.json` | відповідний config dir |
 | AnythingLLM | `%APPDATA%\anythingllm-desktop\storage\plugins\anythingllm_mcp_servers.json` | відповідний config dir |

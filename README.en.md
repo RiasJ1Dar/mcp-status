@@ -77,6 +77,9 @@ After that, a toast is emitted only when a health state changes.
 | `--autostart-status` | Print autostart status |
 | `-h`, `--help` | Print help |
 
+The `--autostart-*` flags print an error to stderr and exit with code `1` on failure.
+The tray menu lists the servers with their state and has a "Вийти / Quit" item.
+
 On Linux/macOS, running without `--once` uses a headless loop. Windows GUI
 dependencies are gated with `cfg(windows)`.
 
@@ -89,7 +92,7 @@ accepted when every value is an object.
 |---|---|---|
 | Cursor | `%USERPROFILE%\.cursor\mcp.json` | `~/.cursor/mcp.json` |
 | Cursor legacy | `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\settings.json` | matching config directory |
-| Claude Code | `%USERPROFILE%\.claude.json`, `%USERPROFILE%\.claude\settings.json` | same paths under `$HOME` |
+| Claude Code | `%USERPROFILE%\.claude.json`, `%USERPROFILE%\.claude\settings.json`, `%APPDATA%\Claude Code\settings.json` | same paths under `$HOME`; `Claude Code/settings.json` in the config dir |
 | Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | Application Support / `.config/Claude` |
 | Jan | `%APPDATA%\Jan\data\mcp_config.json` | matching config directory |
 | AnythingLLM | `%APPDATA%\anythingllm-desktop\storage\plugins\anythingllm_mcp_servers.json` | matching config directory |

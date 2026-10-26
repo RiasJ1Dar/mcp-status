@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "mcp-status: трей живих і мертвих MCP-серверів",
+    "output": ".archify/architecture-mcp-status-20261026-203000/mcp-status.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/RiasJ1Dar/mcp-status.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "de261b2474536772cf8ecf3854674fd1f9a93bb0"
+    }
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [40, 40],
+    "cols": 5,
+    "cellW": 125,
+    "cellH": 70,
+    "gapX": 70,
+    "gapY": 90
+  },
+  "components": [
+    {
+      "id": "confs", "type": "database", "label": "конфіги MCP", "sublabel": "6 клієнтів",
+      "row": 0, "col": 0,
+      "sources": [
+        { "path": "src/config.rs", "line": 65, "end_line": 82, "label": "candidate_paths" },
+        { "path": "src/config.rs", "line": 6, "end_line": 18, "label": "перелік клієнтів" }
+      ]
+    },
+    {
+      "id": "override", "type": "database", "label": ".mcp-status.json", "sublabel": "перекриває решту",
+      "row": 0, "col": 1,
+      "sources": [{ "path": "src/config.rs", "line": 71, "end_line": 81 }]
+    },
+    {
+      "id": "loadall", "type": "backend", "label": "load_all", "sublabel": "merge за іменем",
+      "row": 1, "col": 1,
+      "sources": [
+        { "path": "src/config.rs", "line": 137, "end_line": 155 },
+        { "path": "src/config.rs", "line": 158, "end_line": 165, "label": "parse_file, BOM" }
+      ]
+    },
+    {
+      "id": "ping", "type": "backend", "label": "ping::check", "sublabel": "timeout 2 с",
+      "row": 1, "col": 2,
+      "sources": [{ "path": "src/ping.rs", "line": 51, "end_line": 75 }]
+    },
+    {
+      "id": "endpoint", "type": "external", "label": "host:port", "sublabel": "TCP connect",
+      "row": 1, "col": 3,
+      "sources": [{ "path": "src/ping.rs", "line": 78, "end_line": 90, "label": "розбір URL" }]
+    },
+    {
+      "id": "user", "type": "external", "label": "Користувач", "sublabel": "трей Windows",
+      "row": 2, "col": 0,
+      "sources": [{ "path": "README.md", "line": 24, "end_line": 28, "label": "позначки в треї" }]
+    },
+    {
+      "id": "main", "type": "backend", "label": "mcp-status", "sublabel": "опит кожні 10 с",
+      "row": 2, "col": 1,
+      "sources": [
+        { "path": "src/main.rs", "line": 127, "end_line": 166, "label": "poll_once" },
+        { "path": "src/main.rs", "line": 109, "end_line": 124, "label": "цикл трея" }
+      ]
+    },
+    {
+      "id": "procs", "type": "external", "label": "процеси ОС", "sublabel": "sysinfo",
+      "row": 2, "col": 4,
+      "sources": [{ "path": "src/ping.rs", "line": 7, "end_line": 14, "label": "евристика stdio" }]
+    },
+    {
+      "id": "tray", "type": "frontend", "label": "трей", "sublabel": "меню з ●○?",
+      "row": 3, "col": 0,
+      "sources": [
+        { "path": "src/tray.rs", "line": 40, "end_line": 60, "label": "Windows-реалізація" },
+        { "path": "src/tray.rs", "line": 27, "end_line": 38, "label": "format_row" }
+      ]
+    },
+    {
+      "id": "gate", "type": "backend", "label": "ToastGate", "sublabel": "лише на зміну",
+      "row": 3, "col": 1,
+      "sources": [{ "path": "src/toast.rs", "line": 34, "end_line": 48 }]
+    },
+    {
+      "id": "exch", "type": "backend", "label": "exchange::check", "sublabel": "HTTP GET",
+      "row": 3, "col": 2,
+      "sources": [{ "path": "src/exchange.rs", "line": 26, "end_line": 45 }]
+    },
+    {
+      "id": "board", "type": "external", "label": "agent-exchange", "sublabel": "127.0.0.1:9750",
+      "row": 3, "col": 3,
+      "sources": [{ "path": "src/exchange.rs", "line": 13, "end_line": 23, "label": "типовий URL" }]
+    },
+    {
+      "id": "toastwin", "type": "external", "label": "сповіщення", "sublabel": "Windows toast",
+      "row": 4, "col": 1,
+      "sources": [{ "path": "src/toast.rs", "line": 45, "end_line": 47 }]
+    }
+  ],
+  "connections": [
+    { "id": "confs-load", "from": "confs", "to": "loadall", "label": "читає" },
+    { "id": "over-load", "from": "override", "to": "loadall", "label": "перший", "fromSide": "bottom", "toSide": "top" },
+    { "id": "main-load", "from": "main", "to": "loadall", "label": "load_all", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" },
+    { "id": "user-main", "from": "user", "to": "main", "variant": "emphasis" },
+    { "id": "main-ping", "from": "main", "to": "ping", "label": "check", "variant": "emphasis" },
+    { "id": "ping-endpoint", "from": "ping", "to": "endpoint", "label": "TCP" },
+    { "id": "ping-procs", "from": "ping", "to": "procs", "label": "stdio" },
+    { "id": "main-exch", "from": "main", "to": "exch", "label": "опційно" },
+    { "id": "exch-board", "from": "exch", "to": "board", "label": "GET" },
+    { "id": "main-gate", "from": "main", "to": "gate", "label": "on_change", "fromSide": "bottom", "toSide": "top" },
+    { "id": "gate-toast", "from": "gate", "to": "toastwin", "label": "toast", "fromSide": "bottom", "toSide": "top" },
+    { "id": "main-tray", "from": "main", "to": "tray", "label": "рядки", "variant": "emphasis" },
+    { "id": "tray-user", "from": "tray", "to": "user", "label": "меню", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "Що означає live",
+      "items": [
+        "TCP-перевірка не виконує MCP handshake і не перевіряє HTTP route",
+        "Відкритий порт означає лише доступність на транспортному рівні",
+        "stdio без знайденого процесу дає unknown, а не dead",
+        "Спільні імена (node, python, npx) збігаються зі сторонніми процесами"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Збір конфігів",
+      "items": [
+        "Локації зливаються за іменем: перша в списку виграє",
+        "Ручне перекриття йде першим — для хмарних MCP, яких немає на диску",
+        "UTF-8 BOM від редакторів Windows знімається перед розбором",
+        "Проєктний .cursor/mcp.json не скануємо: немає кореня робочої теки"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Сповіщення без шуму",
+      "items": [
+        "Перше спостереження лише ставить базу — без toast",
+        "15 с після старту сповіщення приглушені",
+        "--once сканує, друкує й виходить: придатно для CI",
+        "Поза Windows працює headless-цикл у stdout"
+      ]
+    }
+  ]
+}

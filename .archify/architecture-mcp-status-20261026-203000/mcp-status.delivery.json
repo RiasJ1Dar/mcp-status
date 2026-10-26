@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "97971535-60fd-4e04-aa44-f143f6ac9127",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\Public\\archify-20261026\\mcp-status\\.archify\\architecture-mcp-status-20261026-203000\\candidate.json",
+  "output": "C:\\Users\\Public\\archify-20261026\\mcp-status\\.archify\\architecture-mcp-status-20261026-203000\\mcp-status.html",
+  "specification": {
+    "sha256": "1a34eab04acf2da7a6d97333ac687a83718370ecf596372c78790463c5ab363f",
+    "bytes": 7025
+  },
+  "artifact": {
+    "sha256": "ad69e7fe7f75bb6b9faac1a14ca74fcd51c645c9d803ffd4057726b5bd832fc9",
+    "bytes": 837523
+  }
+}
